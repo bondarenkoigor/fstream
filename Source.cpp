@@ -1,6 +1,5 @@
 #include<iostream>
 #include<fstream>
-#include<iomanip>
 #include<string>
 
 class Student
@@ -40,7 +39,6 @@ public:
 		{
 			str += std::to_string(grades[i]) + ", ";
 		}
-		//if (str != "") str.erase(str.length() - 2, str.length());
 		return str;
 	}
 	std::string getName()
@@ -94,6 +92,7 @@ public:
 			str += iter->stud->getName() + ": " + iter->stud->getGrades() + "\n";
 			iter = iter->next;
 		}
+		str.erase(str.length() - 1, str.length());//delete \n
 		return str;
 	}
 	void save(const char* fileName)
@@ -104,24 +103,24 @@ public:
 
 	void load(const char* fileName)
 	{
-		std::ifstream in(fileName, std::ios::in);
-		while (!in.eof())
+		std::ifstream file(fileName, std::ios::in);
+		std::string str;
+		while (std::getline(file,str))
 		{
-			std::string str;
-			std::getline(in, str);
-			if (str == "") continue;
-			size_t pos = str.find(": ");
-			std::string name = str.substr(0, pos);
+			std::string name(str, 0, str.find(':'));
 			Student* newStudent = new Student(name);
 			this->add(newStudent);
 
-			std::string grades = str.substr(pos + 2);
+			str = str.substr(str.find(':') + 1);
 			size_t left = 0, right = 0;
-			while ((right = grades.find(", ", right + 1)) != std::string::npos)
+			while (true)
 			{
-				newStudent->addGrade(std::stoi(grades.substr(left, right)));
-				left = right + 2;
-			}
+				right = str.find(',', left);
+				if(right == std::string::npos) break;
+				std::string grade(str, left, right);
+				newStudent->addGrade(stoi(grade));
+				left = right + 1;
+			} 
 		}
 	}
 };
@@ -129,12 +128,14 @@ public:
 int main()
 {
 	Group group1;
-	Student* john = new Student("Johh");
+	Student* john = new Student("John");
 	john->addGrade(10);
 	john->addGrade(12);
 	john->addGrade(8);
 	group1.add(john);
-	group1.add(new Student("Jake"));
+	Student* jake = new Student("jake");
+	jake->addGrade(9);
+	group1.add(jake);
 	group1.add(new Student("James"));
 	group1.save("data.txt");
 
